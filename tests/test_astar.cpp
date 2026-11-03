@@ -60,6 +60,13 @@ TEST(AStar, StartEqualsGoal) {
     EXPECT_EQ(path[0], (Cell{1, 1}));
 }
 
+TEST(AStar, StartEqualsGoalButBlockedOrOutOfBounds) {
+    GridMap g(3, 3);
+    g.setObstacle({1, 1});
+    EXPECT_TRUE(astar(g, {1, 1}, {1, 1}).empty());
+    EXPECT_TRUE(astar(g, {5, 5}, {5, 5}).empty());
+}
+
 TEST(AStar, NoPathWhenGoalWalledOff) {
     const World w = parse(
         "S..#.\n"
