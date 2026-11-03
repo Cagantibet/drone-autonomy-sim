@@ -22,6 +22,11 @@ target_include_directories(drone_core PUBLIC include)
 target_link_libraries(drone_core PUBLIC Eigen3::Eigen)
 target_compile_options(drone_core PRIVATE -Wall -Wextra -Wpedantic)
 
+# ---- apps ----
+add_executable(plan_path apps/plan_path.cpp)
+target_link_libraries(plan_path PRIVATE drone_core)
+target_compile_options(plan_path PRIVATE -Wall -Wextra -Wpedantic)
+
 # ---- tests ----
 option(DRONE_BUILD_TESTS "Build unit tests" ON)
 if(DRONE_BUILD_TESTS)
