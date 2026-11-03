@@ -1,0 +1,11 @@
+build/
+cmake-build-*/
+.vscode/
+.idea/
+.DS_Store
+__pycache__/
+*.pyc
+*.png
+*.gif
+!docs/**/*.png
+!docs/**/*.gif
