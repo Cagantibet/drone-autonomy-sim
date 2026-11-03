@@ -15,6 +15,7 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 # ---- core library ----
 add_library(drone_core
   src/drone.cpp
+  src/grid.cpp
 )
 target_include_directories(drone_core PUBLIC include)
 target_link_libraries(drone_core PUBLIC Eigen3::Eigen)
@@ -35,6 +36,7 @@ if(DRONE_BUILD_TESTS)
   enable_testing()
   add_executable(drone_tests
     tests/test_drone.cpp
+    tests/test_grid.cpp
   )
   target_link_libraries(drone_tests PRIVATE drone_core GTest::gtest_main)
   target_compile_definitions(drone_tests PRIVATE
