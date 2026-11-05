@@ -1,10 +1,12 @@
-// plan_rrt: load a .world map, run RRT, write the tree and path as CSV for
-// viz/animate_rrt.py.
+// plan_rrt: load a .world map, run RRT, shortcut the path, and write the tree
+// and paths as CSV for viz/animate_rrt.py.
 //
 // Usage: plan_rrt <map.world> <out_dir> [--seed N] [--step S] [--goal-tol T]
-//                 [--goal-bias B] [--max-iters N]
-// Writes <out_dir>/tree.csv (id,parent,x,y in insertion order) and
-//        <out_dir>/path.csv (x,y from start to goal; header only if no path).
+//                 [--goal-bias B] [--max-iters N] [--smooth-iters N]
+// Writes <out_dir>/tree.csv (id,parent,x,y in insertion order),
+//        <out_dir>/path.csv (raw RRT path, x,y from start to goal) and
+//        <out_dir>/smooth_path.csv (after shortcutting).
+// Path files contain only the header if no path was found.
 // Exit codes: 0 = path found, 1 = usage/IO/parse error, 2 = no path.
 
 #include <chrono>
@@ -17,6 +19,7 @@
 #include <string>
 
 #include "drone/rrt.hpp"
+#include "drone/smoothing.hpp"
 #include "drone/world2d.hpp"
 
 namespace {
@@ -24,7 +27,7 @@ namespace {
 void usage(const char* prog) {
     std::cerr << "usage: " << prog
               << " <map.world> <out_dir> [--seed N] [--step S] [--goal-tol T]"
-                 " [--goal-bias B] [--max-iters N]\n";
+                 " [--goal-bias B] [--max-iters N] [--smooth-iters N]\n";
 }
 
 void writeTree(const std::filesystem::path& file, const drone::RrtTree& tree) {
@@ -52,6 +55,7 @@ int main(int argc, char** argv) {
     try {
         drone::RrtParams params;
         unsigned seed = 0;
+        int smoothIters = 200;
         for (int i = 3; i < argc; ++i) {
             const std::string flag = argv[i];
             if (i + 1 >= argc) throw std::invalid_argument("missing value for " + flag);
@@ -61,6 +65,7 @@ int main(int argc, char** argv) {
             else if (flag == "--goal-tol") params.goal_tol = std::stod(value);
             else if (flag == "--goal-bias") params.goal_bias = std::stod(value);
             else if (flag == "--max-iters") params.max_iters = std::stoi(value);
+            else if (flag == "--smooth-iters") smoothIters = std::stoi(value);
             else throw std::invalid_argument("unknown option " + flag);
         }
 
@@ -76,6 +81,10 @@ int main(int argc, char** argv) {
         writeTree(outDir / "tree.csv", result.tree);
         writePath(outDir / "path.csv", result.path);
 
+        std::mt19937 smoothRng(seed);
+        const auto smooth = drone::shortcutPath(world, result.path, smoothIters, smoothRng);
+        writePath(outDir / "smooth_path.csv", smooth);
+
         std::cout << std::fixed << std::setprecision(2);
         if (result.path.empty()) {
             std::cout << "no path found after " << result.iterations << " iterations (" << result.tree.size()
@@ -84,7 +93,9 @@ int main(int argc, char** argv) {
         }
         std::cout << "path found: length " << drone::pathLength(result.path) << " m, " << result.path.size()
                   << " waypoints, " << result.tree.size() << " nodes, " << result.iterations << " iterations, "
-                  << ms << " ms\n";
+                  << ms << " ms\n"
+                  << "shortcut: length " << drone::pathLength(smooth) << " m, " << smooth.size()
+                  << " waypoints\n";
         return 0;
     } catch (const std::invalid_argument& e) {
         std::cerr << "error: " << e.what() << "\n";

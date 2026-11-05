@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Overlay the A* and RRT paths written by compare_planners on one map.
+"""Overlay the A*, raw RRT, and smoothed RRT paths written by compare_planners.
 
 Usage:
     python3 viz/plot_compare.py maps/rooms.world build/compare [-o compare.png] [--show]
 
-<out_dir> must contain astar_path.csv and rrt_path.csv from compare_planners --out.
+<out_dir> must contain astar_path.csv, rrt_path.csv and rrt_smooth_path.csv
+from compare_planners --out.
 """
 
 import argparse
@@ -17,8 +18,9 @@ import matplotlib.pyplot as plt
 from world2d import draw_world, load_world, read_points
 
 STYLES = {
-    "astar_path.csv": ("A* (grid)", "#1f77b4", "-"),
-    "rrt_path.csv": ("RRT (best seed)", "#ff7f0e", "-"),
+    "astar_path.csv": ("A* (grid)", "#1f77b4", "-", 2.2),
+    "rrt_path.csv": ("RRT raw", "#ff7f0e", "--", 1.4),
+    "rrt_smooth_path.csv": ("RRT + shortcut", "#9467bd", "-", 2.6),
 }
 
 
@@ -39,18 +41,18 @@ def main():
 
     world = load_world(args.world)
     fig, ax = plt.subplots(figsize=(8, 8 * world.height / world.width + 0.6))
-    draw_world(ax, world, f"{Path(args.world).name}: A* vs RRT")
+    draw_world(ax, world, f"{Path(args.world).name}: A* vs RRT (median-length run)")
 
-    for fname, (label, color, ls) in STYLES.items():
+    for fname, (label, color, ls, lw) in STYLES.items():
         path = read_points(Path(args.out_dir) / fname)
         if not path:
             print(f"note: {fname} is empty")
             continue
         xs, ys = zip(*path)
-        ax.plot(xs, ys, color=color, linestyle=ls, linewidth=2.2, zorder=4,
+        ax.plot(xs, ys, color=color, linestyle=ls, linewidth=lw, zorder=4,
                 label=f"{label}: {path_length(path):.2f} m")
 
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=2, frameon=False)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=3, frameon=False)
     fig.tight_layout()
     fig.savefig(args.output, dpi=150, bbox_inches="tight")
     print(f"saved {args.output}")
