@@ -157,9 +157,12 @@ docs/            images used in this README
 ## Roadmap
 
 - [x] **Milestone 1:** grid world and A* path planning
-- [x] **Milestone 2:** RRT in continuous space with path smoothing, and drone physics
+- [x] **Milestone 2:** RRT with path smoothing, and drone physics
 - [ ] **Milestone 3:** PID path following
-- [ ] **Milestone 4:** dynamic obstacles and local avoidance (global planner replanning plus a local avoidance layer)
-- [ ] **Milestone 5:** Python bindings and a Gymnasium environment
-- [ ] **Milestone 6:** RL agent trained with moving obstacles
-- [ ] **Milestone 7:** vision
+- [ ] **Milestone 4:** dynamic obstacles and local avoidance, with a 2D ray-cast range sensor (lidar-style) so the drone only detects nearby obstacles
+- [ ] **Milestone 5:** RL agent trained with moving obstacles, using the range sensor as its observation (includes Python bindings and a Gymnasium environment)
+
+## Future work
+
+- **RRT\*:** asymptotically optimal rewiring, compared against RRT plus shortcutting.
+- **3D quadrotor simulator:** a separate project with realistic quadrotor dynamics and camera/depth-based perception.
