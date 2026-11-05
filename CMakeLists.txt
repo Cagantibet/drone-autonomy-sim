@@ -30,6 +30,10 @@ add_executable(plan_path apps/plan_path.cpp)
 target_link_libraries(plan_path PRIVATE drone_core)
 target_compile_options(plan_path PRIVATE -Wall -Wextra -Wpedantic)
 
+add_executable(plan_rrt apps/plan_rrt.cpp)
+target_link_libraries(plan_rrt PRIVATE drone_core)
+target_compile_options(plan_rrt PRIVATE -Wall -Wextra -Wpedantic)
+
 # ---- tests ----
 option(DRONE_BUILD_TESTS "Build unit tests" ON)
 if(DRONE_BUILD_TESTS)
