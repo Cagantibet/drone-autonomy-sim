@@ -159,7 +159,7 @@ docs/            images used in this README
 - [x] **Milestone 1:** grid world and A* path planning
 - [x] **Milestone 2:** RRT with path smoothing, and drone physics
 - [ ] **Milestone 3:** PID path following
-- [ ] **Milestone 4:** dynamic obstacles and local avoidance, with a 2D ray-cast range sensor (lidar-style) so the drone only detects nearby obstacles
+- [ ] **Milestone 4:** dynamic obstacles and local avoidance, with a 2D ray-cast range sensor (lidar-style)
 - [ ] **Milestone 5:** RL agent trained with moving obstacles, using the range sensor as its observation (includes Python bindings and a Gymnasium environment)
 
 ## Future work
