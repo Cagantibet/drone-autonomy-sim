@@ -21,6 +21,7 @@ add_library(drone_core
   src/collision.cpp
   src/rrt.cpp
   src/rasterize.cpp
+  src/smoothing.cpp
 )
 target_include_directories(drone_core PUBLIC include)
 target_link_libraries(drone_core PUBLIC Eigen3::Eigen)
@@ -60,6 +61,7 @@ if(DRONE_BUILD_TESTS)
     tests/test_collision.cpp
     tests/test_rrt.cpp
     tests/test_rasterize.cpp
+    tests/test_smoothing.cpp
   )
   target_link_libraries(drone_tests PRIVATE drone_core GTest::gtest_main)
   target_compile_definitions(drone_tests PRIVATE
