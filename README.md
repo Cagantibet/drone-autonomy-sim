@@ -4,17 +4,54 @@
 
 A 2D drone autonomy simulator built from scratch in **C++17**, with Python visualization.
 The drone plans routes through grid and continuous obstacle maps with A* and RRT,
-and later milestones add path following with a PID controller and reactive obstacle
-avoidance.
+with point-mass dynamics and exact collision checking. Next up are path following
+with a PID controller and reactive obstacle avoidance.
 
 The focus is clean, tested, interview-grade implementations of core robotics
 algorithms rather than wrapping existing libraries.
 
 ## Results
 
+### A* on a grid
+
 A* finds the optimal 36-move route through a 21×13 maze (4-connected, unit cost):
 
 ![A* path through a maze](docs/maze.png)
+
+### RRT in continuous space
+
+RRT grows a tree from the start by sampling random points in free space, with a
+5% bias toward the goal. Every edge is collision-checked exactly for a 0.3 m radius
+drone. In `rooms.world` the drone has to get through two 1.2 m doors, which is the
+classic hard case for uniform sampling:
+
+![RRT tree growing through narrow doors](docs/rrt_rooms.gif)
+
+### RRT vs A*
+
+Both planners run on the same world. A* searches a 0.25 m grid rasterized from the
+continuous map, with obstacles inflated by the drone radius. RRT plans directly in
+continuous space (0.5 m step, 5% goal bias). RRT results are over 50 seeds.
+
+| Map | Planner | Success | Path length (m) | Planning time |
+|---|---|---|---|---|
+| `forest.world` | A* (grid) | 1/1 | 28.07 | 0.04 ms |
+| | RRT | 50/50 | 27.06 median (23.37–31.97) | 0.09 ms mean |
+| `rooms.world` | A* (grid) | 1/1 | 39.57 | 0.04 ms |
+| | RRT | 50/50 | 41.50 median (37.91–47.93) | 0.65 ms mean |
+
+Release build on an Apple M5 Pro. A* time excludes the one-off rasterization
+(~0.03 ms). Reproduce with `compare_planners <map> --runs 50`.
+
+| `forest.world` | `rooms.world` |
+|---|---|
+| ![A* vs RRT on forest](docs/compare_forest.png) | ![A* vs RRT on rooms](docs/compare_rooms.png) |
+
+Takeaways:
+
+- **A\* is deterministic and optimal on its grid, but only on its grid.** Its 4-connected moves make a staircase, so in the open `forest` map RRT's any-angle paths come out shorter on median.
+- **RRT pays for narrow passages.** In `rooms` it needs about 2.3x the nodes and 7x the time it needs in `forest`, and its paths are jagged and vary from seed to seed (38–48 m). Path smoothing and RRT\* (Milestone 3) target exactly this.
+- **Both are sub-millisecond at this scale.** A\*'s cost grows with grid resolution and map area, while RRT's grows with how hard the free space is to sample, not with map size.
 
 ## Features
 
@@ -27,7 +64,7 @@ A* finds the optimal 36-move route through a 21×13 maze (4-connected, unit cost
 - **A\* vs RRT:** the continuous map is rasterized (obstacles inflated by the drone radius) so both planners run on the same world, then compared on path length, success rate, and runtime over many seeds.
 - **CLI:** `plan_path` (A* on grid maps), `plan_rrt` (RRT, exports tree and path), `compare_planners` (benchmark table).
 - **Visualization:** matplotlib scripts for grid worlds, an animated GIF of RRT tree growth, and an A*/RRT overlay.
-- **Testing:** GoogleTest unit tests for parsing, collision geometry, dynamics, RRT invariants, and A*, including optimal-length checks against BFS.
+- **Testing:** 70 GoogleTest unit tests for parsing, collision geometry, dynamics, RRT invariants, and A*, including optimal-length checks against BFS.
 - **CI:** GitHub Actions builds and runs the tests on every push.
 
 ## Build and run
@@ -108,7 +145,7 @@ docs/            images used in this README
 ## Roadmap
 
 - [x] **Milestone 1:** grid world, map loading, A* planning, plotting, CI
-- [ ] **Milestone 2:** continuous world, exact collision checking, drone dynamics, RRT vs A*, animated GIF
+- [x] **Milestone 2:** continuous world, exact collision checking, drone dynamics, RRT vs A*, animated GIF
 - [ ] **Milestone 3:** PID controller that flies the planned path, plus RRT* and path smoothing
 - [ ] **Milestone 4:** reactive obstacle avoidance with dynamic obstacles and replanning
 - [ ] **Milestone 5:** learned policy (RL) for navigation, benchmarked against the classical stack
