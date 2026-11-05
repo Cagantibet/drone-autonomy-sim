@@ -72,7 +72,7 @@ void expectValidResult(const World2D& w, const RrtParams& p, const RrtResult& r)
 
 }  // namespace
 
-// ---- helpers (implemented, always on) ----
+// ---- helpers ----
 
 TEST(RrtHelpers, NearestIndex) {
     RrtTree t;
@@ -110,7 +110,7 @@ TEST(RrtHelpers, PathLength) {
     EXPECT_DOUBLE_EQ(drone::pathLength({Vec2(0, 0), Vec2(3, 4), Vec2(3, 6)}), 7.0);
 }
 
-// ---- planner (remove DISABLED_ once rrt() is implemented) ----
+// ---- planner (disabled until rrt() is implemented) ----
 
 TEST(DISABLED_Rrt, FindsPathInEmptyWorld) {
     const World2D w = emptyWorld();

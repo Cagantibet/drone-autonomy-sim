@@ -83,7 +83,7 @@ def main():
     grid, start, goal = load_map(args.map)
     path = load_path(args.path) if args.path else []
     if args.path and not path:
-        print("note: path CSV is empty (no path found, or A* not implemented yet)")
+        print("note: path CSV is empty (no path found)")
 
     fig = plot(grid, start, goal, path, Path(args.map).name)
     fig.savefig(args.output, dpi=150)

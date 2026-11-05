@@ -41,7 +41,7 @@ double pathLength(const std::vector<Vec2>& path) {
 }
 
 RrtResult rrt(const World2D& w, const RrtParams& params, std::mt19937& rng) {
-    // TODO(you): RRT core loop (see rrt.hpp).
+    // TODO: implement.
     (void)w;
     (void)params;
     (void)rng;

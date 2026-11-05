@@ -26,7 +26,7 @@ TEST(Drone, DefaultState) {
     EXPECT_GT(d.max_accel, 0.0);
 }
 
-// TODO: remove the DISABLED_ prefix once step() is implemented.
+// Disabled until step() is implemented.
 
 TEST(DISABLED_DroneStep, ZeroCommandKeepsConstantVelocity) {
     Drone d;

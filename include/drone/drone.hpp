@@ -12,17 +12,10 @@ struct Drone {
     double max_accel = 1.0;  // |applied acceleration| never exceeds this
 };
 
-// Advance the drone by dt seconds under the commanded acceleration.
-//
-// Approach (semi-implicit Euler):
-//  1. a = accel_cmd, clamped to |a| <= max_accel. Clamp by scaling the
-//     vector (a *= max_accel / |a|) so the direction is kept.
-//  2. velocity += a * dt, then clamp |velocity| <= max_speed the same way.
-//  3. position += velocity * dt, using the NEW velocity. This is what makes
-//     it semi-implicit (more stable than plain Euler for controllers later).
-//  Guard: if dt <= 0, leave the state unchanged.
-//  Eigen: v.norm(), v *= s. No need to special-case a zero vector if you only
-//  scale when the norm exceeds the limit.
+// Advance the drone by dt seconds under the commanded acceleration, using
+// semi-implicit Euler (velocity first, then position from the new velocity).
+// The acceleration and resulting velocity are clamped to max_accel and
+// max_speed by norm, preserving direction. dt <= 0 leaves the state unchanged.
 void step(Drone& d, const Eigen::Vector2d& accel_cmd, double dt);
 
 }  // namespace drone

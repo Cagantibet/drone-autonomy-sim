@@ -28,7 +28,3 @@ __pycache__/
 *.gif
 !docs/**/*.png
 !docs/**/*.gif
-
-# Local AI assistant notes
-CLAUDE.md
-.claude/

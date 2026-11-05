@@ -64,7 +64,7 @@ def main():
         title = f"RRT: {len(nodes)} nodes, path {path_length(path):.2f} m"
     else:
         title = f"RRT: {len(nodes)} nodes, no path found"
-        print("note: path.csv is empty (no path found, or rrt() not implemented yet)")
+        print("note: path.csv is empty (no path found)")
 
     fig, ax, tree, path_line = make_figure(world, f"{Path(args.world).name}  |  {title}")
 
