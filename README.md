@@ -50,7 +50,7 @@ Release build on an Apple M5 Pro. A* time excludes the one-off rasterization
 Takeaways:
 
 - **A\* is deterministic and optimal on its grid, but only on its grid.** Its 4-connected moves make a staircase, so in the open `forest` map RRT's any-angle paths come out shorter on median.
-- **RRT pays for narrow passages.** In `rooms` it needs about 2.3x the nodes and 7x the time it needs in `forest`, and its paths are jagged and vary from seed to seed (38–48 m). Path smoothing and RRT\* (Milestone 3) target exactly this.
+- **RRT pays for narrow passages.** In `rooms` it needs about 2.3x the nodes and 7x the time it needs in `forest`, and its paths are jagged and vary from seed to seed (38–48 m). Path smoothing or RRT\* would address this.
 - **Both are sub-millisecond at this scale.** A\*'s cost grows with grid resolution and map area, while RRT's grows with how hard the free space is to sample, not with map size.
 
 ## Features
@@ -144,8 +144,10 @@ docs/            images used in this README
 
 ## Roadmap
 
-- [x] **Milestone 1:** grid world, map loading, A* planning, plotting, CI
-- [x] **Milestone 2:** continuous world, exact collision checking, drone dynamics, RRT vs A*, animated GIF
-- [ ] **Milestone 3:** PID controller that flies the planned path, plus RRT* and path smoothing
-- [ ] **Milestone 4:** reactive obstacle avoidance with dynamic obstacles and replanning
-- [ ] **Milestone 5:** learned policy (RL) for navigation, benchmarked against the classical stack
+- [x] **Milestone 1:** grid world and A* path planning
+- [x] **Milestone 2:** RRT in continuous space and drone physics
+- [ ] **Milestone 3:** PID path following
+- [ ] **Milestone 4:** dynamic obstacles and local avoidance (global planner replanning plus a local avoidance layer)
+- [ ] **Milestone 5:** Python bindings and a Gymnasium environment
+- [ ] **Milestone 6:** RL agent trained with moving obstacles
+- [ ] **Milestone 7:** vision
