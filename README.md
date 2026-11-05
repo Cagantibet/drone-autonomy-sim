@@ -23,25 +23,35 @@ A* finds the optimal 36-move route through a 21×13 maze (4-connected, unit cost
 RRT grows a tree from the start by sampling random points in free space, with a
 5% bias toward the goal. Every edge is collision-checked exactly for a 0.3 m radius
 drone. In `rooms.world` the drone has to get through two 1.2 m doors, which is the
-classic hard case for uniform sampling:
+classic hard case for uniform sampling.
 
-![RRT tree growing through narrow doors](docs/rrt_rooms.gif)
+The raw RRT path (orange) is jagged. Random shortcutting then repeatedly picks two
+waypoints and, if the straight segment between them is collision-free, drops
+everything in between (purple):
+
+![RRT tree growing through narrow doors, then the path being shortcut](docs/rrt_rooms.gif)
 
 ### RRT vs A*
 
-Both planners run on the same world. A* searches a 0.25 m grid rasterized from the
+All planners run on the same world. A* searches a 0.25 m grid rasterized from the
 continuous map, with obstacles inflated by the drone radius. RRT plans directly in
-continuous space (0.5 m step, 5% goal bias). RRT results are over 50 seeds.
+continuous space (0.5 m step, 5% goal bias), and each path is then shortcut for 200
+rounds. RRT results are over 50 seeds.
 
-| Map | Planner | Success | Path length (m) | Planning time |
+| Map | Planner | Success | Path length (m), median (range) | Time (mean) |
 |---|---|---|---|---|
 | `forest.world` | A* (grid) | 1/1 | 28.07 | 0.04 ms |
-| | RRT | 50/50 | 27.06 median (23.37–31.97) | 0.09 ms mean |
+| | RRT raw | 50/50 | 27.06 (23.37–31.97) | 0.09 ms |
+| | RRT + shortcut | 50/50 | **22.98** (21.07–26.85) | 0.10 ms |
 | `rooms.world` | A* (grid) | 1/1 | 39.57 | 0.04 ms |
-| | RRT | 50/50 | 41.50 median (37.91–47.93) | 0.65 ms mean |
+| | RRT raw | 50/50 | 41.50 (37.91–47.93) | 0.66 ms |
+| | RRT + shortcut | 50/50 | **32.82** (31.44–36.65) | 0.67 ms |
 
 Release build on an Apple M5 Pro. A* time excludes the one-off rasterization
-(~0.03 ms). Reproduce with `compare_planners <map> --runs 50`.
+(~0.03 ms), and the smoothed time includes RRT. Reproduce with
+`compare_planners <map> --runs 50`.
+
+The figures show the run with the median raw length:
 
 | `forest.world` | `rooms.world` |
 |---|---|
@@ -49,9 +59,10 @@ Release build on an Apple M5 Pro. A* time excludes the one-off rasterization
 
 Takeaways:
 
-- **A\* is deterministic and optimal on its grid, but only on its grid.** Its 4-connected moves make a staircase, so in the open `forest` map RRT's any-angle paths come out shorter on median.
-- **RRT pays for narrow passages.** In `rooms` it needs about 2.3x the nodes and 7x the time it needs in `forest`, and its paths are jagged and vary from seed to seed (38–48 m). Path smoothing or RRT\* would address this.
-- **Both are sub-millisecond at this scale.** A\*'s cost grows with grid resolution and map area, while RRT's grows with how hard the free space is to sample, not with map size.
+- **Shortcutting is nearly free and makes the biggest difference.** It adds about 0.01 ms, cuts the median path by 15% (forest) and 21% (rooms), and reduces hundreds of tree nodes to 6–8 waypoints. A path that sparse is also much easier for a controller to follow.
+- **Smoothed RRT beats grid A\* on length.** It's 18% shorter in `forest` and 17% shorter in `rooms`, because A\*'s 4-connected moves form a staircase while shortcut segments can take any angle. A\* is only optimal on its own grid.
+- **RRT still pays for narrow passages.** In `rooms` it needs about 2.3x the nodes and 7x the time it needs in `forest`. Smoothing also narrows the seed-to-seed spread (38–48 m raw down to 31–37 m), but it can't fix a path that went through the wrong door.
+- **All of them are sub-millisecond at this scale.** A\*'s cost grows with grid resolution and map area, while RRT's grows with how hard the free space is to sample.
 
 ## Features
 
@@ -61,10 +72,11 @@ Takeaways:
 - **Collision checking:** the drone is a disc. Point and swept-segment checks against circles, rectangles and bounds are exact (closed-form, no sampling), so thin walls between two free points are never missed.
 - **Drone dynamics:** point mass with max speed and max acceleration, integrated with semi-implicit Euler.
 - **RRT:** sampling-based planning in continuous space with goal biasing, seeded and fully reproducible.
+- **Path smoothing:** random shortcutting that removes unnecessary RRT waypoints while staying collision-free.
 - **A\* vs RRT:** the continuous map is rasterized (obstacles inflated by the drone radius) so both planners run on the same world, then compared on path length, success rate, and runtime over many seeds.
-- **CLI:** `plan_path` (A* on grid maps), `plan_rrt` (RRT, exports tree and path), `compare_planners` (benchmark table).
-- **Visualization:** matplotlib scripts for grid worlds, an animated GIF of RRT tree growth, and an A*/RRT overlay.
-- **Testing:** 70 GoogleTest unit tests for parsing, collision geometry, dynamics, RRT invariants, and A*, including optimal-length checks against BFS.
+- **CLI:** `plan_path` (A* on grid maps), `plan_rrt` (RRT plus shortcutting, exports tree and paths), `compare_planners` (benchmark table).
+- **Visualization:** matplotlib scripts for grid worlds, an animated GIF of RRT tree growth and smoothing, and an A*/RRT overlay.
+- **Testing:** 76 GoogleTest unit tests for parsing, collision geometry, dynamics, RRT and smoothing invariants, and A*, including optimal-length checks against BFS.
 - **CI:** GitHub Actions builds and runs the tests on every push.
 
 ## Build and run
@@ -102,8 +114,8 @@ python3 viz/animate_rrt.py maps/rooms.world build/rrt -o rrt.gif --png rrt.png
 python3 viz/plot_compare.py maps/rooms.world build/compare -o compare.png
 ```
 
-`plan_rrt` options: `--seed`, `--step`, `--goal-tol`, `--goal-bias`, `--max-iters`.
-`compare_planners` options: `--res` (A* cell size, m), `--runs`, `--max-iters`, `--out`.
+`plan_rrt` options: `--seed`, `--step`, `--goal-tol`, `--goal-bias`, `--max-iters`, `--smooth-iters`.
+`compare_planners` options: `--res` (A* cell size, m), `--runs`, `--max-iters`, `--smooth-iters`, `--out`.
 
 ### Map format
 
@@ -133,7 +145,7 @@ Continuous maps in meters with `y` pointing up. One directive per line, and `#` 
 ## Project layout
 
 ```
-include/drone/   public headers (grid, astar, world2d, collision, drone, rrt, rasterize)
+include/drone/   public headers (grid, astar, world2d, collision, drone, rrt, smoothing, rasterize)
 src/             core library (drone_core)
 apps/            CLI tools (plan_path, plan_rrt, compare_planners)
 tests/           GoogleTest unit tests
@@ -145,7 +157,7 @@ docs/            images used in this README
 ## Roadmap
 
 - [x] **Milestone 1:** grid world and A* path planning
-- [x] **Milestone 2:** RRT in continuous space and drone physics
+- [x] **Milestone 2:** RRT in continuous space with path smoothing, and drone physics
 - [ ] **Milestone 3:** PID path following
 - [ ] **Milestone 4:** dynamic obstacles and local avoidance (global planner replanning plus a local avoidance layer)
 - [ ] **Milestone 5:** Python bindings and a Gymnasium environment
