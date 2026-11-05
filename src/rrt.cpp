@@ -41,11 +41,51 @@ double pathLength(const std::vector<Vec2>& path) {
 }
 
 RrtResult rrt(const World2D& w, const RrtParams& params, std::mt19937& rng) {
-    // TODO: implement.
-    (void)w;
-    (void)params;
-    (void)rng;
-    return {};
+    RrtResult result;
+    result.tree.addNode(w.start, -1);
+
+    if (pointCollides(w, w.start, w.drone_radius) || pointCollides(w, w.goal, w.drone_radius)) {
+        return result;
+    }
+
+    std::uniform_real_distribution<double> xDist(0.0, w.width);
+    std::uniform_real_distribution<double> yDist(0.0, w.height);
+    std::uniform_real_distribution<double> goalBiasDist(0.0, 1.0);
+
+    for (int iter = 0; iter < params.max_iters; ++iter) {
+        Vec2 sample;
+        if (goalBiasDist(rng) < params.goal_bias) {
+            sample = w.goal;
+        } else {
+            sample = Vec2(xDist(rng), yDist(rng));
+        }
+
+        const int nearestIdx = nearestIndex(result.tree, sample);
+        const Vec2 newNode = steer(result.tree.nodes[nearestIdx], sample, params.step);
+
+        if (!segmentCollides(w, result.tree.nodes[nearestIdx], newNode, w.drone_radius)) {
+            const int newIdx = result.tree.addNode(newNode, nearestIdx);
+            const double distToGoal = (newNode - w.goal).norm();
+            if (distToGoal <= params.goal_tol) {
+                // newNode may already be the goal (a goal sample within one
+                // step); otherwise only finish if the final edge is free.
+                int goalIdx = -1;
+                if (distToGoal <= 1e-9) {
+                    goalIdx = newIdx;
+                } else if (!segmentCollides(w, newNode, w.goal, w.drone_radius)) {
+                    goalIdx = result.tree.addNode(w.goal, newIdx);
+                }
+                if (goalIdx != -1) {
+                    result.path = extractPath(result.tree, goalIdx);
+                    result.iterations = iter + 1;
+                    return result;
+                }
+            }
+        }
+    }
+
+    result.iterations = params.max_iters;
+    return result;
 }
 
 }  // namespace drone

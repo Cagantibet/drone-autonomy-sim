@@ -110,15 +110,15 @@ TEST(RrtHelpers, PathLength) {
     EXPECT_DOUBLE_EQ(drone::pathLength({Vec2(0, 0), Vec2(3, 4), Vec2(3, 6)}), 7.0);
 }
 
-// ---- planner (disabled until rrt() is implemented) ----
+// ---- planner ----
 
-TEST(DISABLED_Rrt, FindsPathInEmptyWorld) {
+TEST(Rrt, FindsPathInEmptyWorld) {
     const World2D w = emptyWorld();
     const RrtParams p;
     expectValidResult(w, p, run(w, p, 1));
 }
 
-TEST(DISABLED_Rrt, FindsPathThroughGapForManySeeds) {
+TEST(Rrt, FindsPathThroughGapForManySeeds) {
     const World2D w = wallWorld();
     RrtParams p;
     p.max_iters = 20000;
@@ -128,7 +128,7 @@ TEST(DISABLED_Rrt, FindsPathThroughGapForManySeeds) {
     }
 }
 
-TEST(DISABLED_Rrt, SolvesShippedMaps) {
+TEST(Rrt, SolvesShippedMaps) {
     RrtParams p;
     p.max_iters = 20000;
     for (const char* name : {"forest.world", "rooms.world"}) {
@@ -145,7 +145,7 @@ TEST(DISABLED_Rrt, SolvesShippedMaps) {
     }
 }
 
-TEST(DISABLED_Rrt, SameSeedGivesSameTree) {
+TEST(Rrt, SameSeedGivesSameTree) {
     const World2D w = wallWorld();
     const RrtParams p;
     const RrtResult a = run(w, p, 42);
@@ -158,7 +158,7 @@ TEST(DISABLED_Rrt, SameSeedGivesSameTree) {
     EXPECT_EQ(a.path.size(), b.path.size());
 }
 
-TEST(DISABLED_Rrt, StartNearGoalConnectsDirectly) {
+TEST(Rrt, StartNearGoalConnectsDirectly) {
     World2D w = emptyWorld();
     w.goal = w.start + Vec2(0.3, 0.0);  // within goal_tol
     const RrtParams p;
@@ -167,7 +167,7 @@ TEST(DISABLED_Rrt, StartNearGoalConnectsDirectly) {
     EXPECT_LE(drone::pathLength(r.path), p.step + p.goal_tol + kEps);
 }
 
-TEST(DISABLED_Rrt, UnreachableGoalReturnsEmptyPath) {
+TEST(Rrt, UnreachableGoalReturnsEmptyPath) {
     World2D w = emptyWorld();
     // Goal boxed in by four walls.
     w.rects = {{Vec2(7, 7), Vec2(9.8, 7.3)}, {Vec2(7, 9.5), Vec2(9.8, 9.8)},
@@ -181,7 +181,7 @@ TEST(DISABLED_Rrt, UnreachableGoalReturnsEmptyPath) {
     EXPECT_GT(r.tree.size(), 1);  // tree still grew and is returned for plotting
 }
 
-TEST(DISABLED_Rrt, GoalOrStartInCollisionReturnsEmptyPath) {
+TEST(Rrt, GoalOrStartInCollisionReturnsEmptyPath) {
     World2D w = emptyWorld();
     w.circles.push_back({w.goal, 0.5});
     EXPECT_TRUE(run(w, RrtParams{}, 0).path.empty());
@@ -189,4 +189,21 @@ TEST(DISABLED_Rrt, GoalOrStartInCollisionReturnsEmptyPath) {
     w = emptyWorld();
     w.circles.push_back({w.start, 0.5});
     EXPECT_TRUE(run(w, RrtParams{}, 0).path.empty());
+}
+
+TEST(Rrt, DoesNotConnectToGoalThroughAWall) {
+    // Thin wall just left of the goal: nodes on the wrong side get within
+    // goal_tol, but the only valid route is around the end of the wall.
+    World2D w = emptyWorld();
+    w.drone_radius = 0.1;
+    w.rects.push_back({Vec2(7.0, 0.0), Vec2(7.05, 8.5)});
+    w.start = {2, 5};
+    w.goal = {7.3, 5};
+    RrtParams p;
+    p.goal_tol = 0.6;
+    p.max_iters = 20000;
+    for (unsigned seed = 0; seed < 10; ++seed) {
+        SCOPED_TRACE("seed " + std::to_string(seed));
+        expectValidResult(w, p, run(w, p, seed));
+    }
 }

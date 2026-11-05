@@ -26,9 +26,7 @@ TEST(Drone, DefaultState) {
     EXPECT_GT(d.max_accel, 0.0);
 }
 
-// Disabled until step() is implemented.
-
-TEST(DISABLED_DroneStep, ZeroCommandKeepsConstantVelocity) {
+TEST(DroneStep, ZeroCommandKeepsConstantVelocity) {
     Drone d;
     d.velocity = {1.0, 0.0};
     drone::step(d, Vector2d::Zero(), 0.5);
@@ -36,13 +34,13 @@ TEST(DISABLED_DroneStep, ZeroCommandKeepsConstantVelocity) {
     expectVec(d.position, {0.5, 0.0});
 }
 
-TEST(DISABLED_DroneStep, CommandWithinLimitIsAppliedAsIs) {
+TEST(DroneStep, CommandWithinLimitIsAppliedAsIs) {
     Drone d;  // max_accel = 1
     drone::step(d, {0.5, 0.0}, 1.0);
     expectVec(d.velocity, {0.5, 0.0});
 }
 
-TEST(DISABLED_DroneStep, UsesNewVelocityForPosition) {
+TEST(DroneStep, UsesNewVelocityForPosition) {
     Drone d;
     d.max_accel = 2.0;
     d.max_speed = 10.0;
@@ -52,7 +50,7 @@ TEST(DISABLED_DroneStep, UsesNewVelocityForPosition) {
     expectVec(d.position, {0.75, 0.0});  // plain Euler would give 0.5
 }
 
-TEST(DISABLED_DroneStep, ClampsAccelerationKeepingDirection) {
+TEST(DroneStep, ClampsAccelerationKeepingDirection) {
     Drone d;
     d.max_accel = 1.0;
     d.max_speed = 10.0;
@@ -61,7 +59,7 @@ TEST(DISABLED_DroneStep, ClampsAccelerationKeepingDirection) {
     expectVec(d.position, {0.6, 0.8});
 }
 
-TEST(DISABLED_DroneStep, ClampsSpeedKeepingDirection) {
+TEST(DroneStep, ClampsSpeedKeepingDirection) {
     Drone d;
     d.max_speed = 2.0;
     d.max_accel = 1.0;
@@ -72,7 +70,7 @@ TEST(DISABLED_DroneStep, ClampsSpeedKeepingDirection) {
     expectVec(d.position, expected);
 }
 
-TEST(DISABLED_DroneStep, NonPositiveDtIsANoOp) {
+TEST(DroneStep, NonPositiveDtIsANoOp) {
     for (double dt : {0.0, -0.1}) {
         Drone d;
         d.position = {1.0, 2.0};
@@ -83,7 +81,7 @@ TEST(DISABLED_DroneStep, NonPositiveDtIsANoOp) {
     }
 }
 
-TEST(DISABLED_DroneStep, LongRunReachesButNeverExceedsMaxSpeed) {
+TEST(DroneStep, LongRunReachesButNeverExceedsMaxSpeed) {
     Drone d;  // max_speed = 2, max_accel = 1
     double prevX = d.position.x();
     for (int i = 0; i < 100; ++i) {
