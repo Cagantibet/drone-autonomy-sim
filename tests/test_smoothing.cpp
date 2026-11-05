@@ -55,7 +55,7 @@ std::vector<Vec2> zigZag() {
 
 }  // namespace
 
-TEST(DISABLED_Shortcut, ShortPathsAreUnchanged) {
+TEST(Shortcut, ShortPathsAreUnchanged) {
     const World2D w = emptyWorld();
     EXPECT_TRUE(smooth(w, {}).empty());
     const std::vector<Vec2> one{Vec2(1, 1)};
@@ -64,12 +64,12 @@ TEST(DISABLED_Shortcut, ShortPathsAreUnchanged) {
     EXPECT_EQ(smooth(w, two), two);
 }
 
-TEST(DISABLED_Shortcut, ZeroIterationsIsANoOp) {
+TEST(Shortcut, ZeroIterationsIsANoOp) {
     const auto in = zigZag();
     EXPECT_EQ(smooth(emptyWorld(), in, 0), in);
 }
 
-TEST(DISABLED_Shortcut, FreeSpaceCollapsesToStraightLine) {
+TEST(Shortcut, FreeSpaceCollapsesToStraightLine) {
     const World2D w = emptyWorld();
     const auto in = zigZag();
     const auto out = smooth(w, in);
@@ -77,7 +77,7 @@ TEST(DISABLED_Shortcut, FreeSpaceCollapsesToStraightLine) {
     ASSERT_EQ(out.size(), 2u);
 }
 
-TEST(DISABLED_Shortcut, KeepsCornerAroundObstacle) {
+TEST(Shortcut, KeepsCornerAroundObstacle) {
     // Wall between start and goal; the path goes over the top of it.
     World2D w = emptyWorld();
     w.rects.push_back({Vec2(4.5, 0), Vec2(5.5, 7)});
@@ -92,14 +92,14 @@ TEST(DISABLED_Shortcut, KeepsCornerAroundObstacle) {
     EXPECT_LT(drone::pathLength(out), drone::pathLength(in));
 }
 
-TEST(DISABLED_Shortcut, SameSeedGivesSameResult) {
+TEST(Shortcut, SameSeedGivesSameResult) {
     World2D w = emptyWorld();
     w.circles.push_back({Vec2(5, 2), 0.8});
     const auto in = zigZag();
     EXPECT_EQ(smooth(w, in, 5, 3), smooth(w, in, 5, 3));
 }
 
-TEST(DISABLED_Shortcut, ShortensRrtPathsOnShippedMaps) {
+TEST(Shortcut, ShortensRrtPathsOnShippedMaps) {
     drone::RrtParams params;
     params.max_iters = 20000;
     for (const char* name : {"forest.world", "rooms.world"}) {
