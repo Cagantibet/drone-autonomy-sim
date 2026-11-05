@@ -18,6 +18,7 @@ add_library(drone_core
   src/grid.cpp
   src/astar.cpp
   src/world2d.cpp
+  src/collision.cpp
 )
 target_include_directories(drone_core PUBLIC include)
 target_link_libraries(drone_core PUBLIC Eigen3::Eigen)
@@ -46,6 +47,7 @@ if(DRONE_BUILD_TESTS)
     tests/test_grid.cpp
     tests/test_astar.cpp
     tests/test_world2d.cpp
+    tests/test_collision.cpp
   )
   target_link_libraries(drone_tests PRIVATE drone_core GTest::gtest_main)
   target_compile_definitions(drone_tests PRIVATE
