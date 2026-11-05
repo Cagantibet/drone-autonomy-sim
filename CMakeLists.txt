@@ -20,6 +20,7 @@ add_library(drone_core
   src/world2d.cpp
   src/collision.cpp
   src/rrt.cpp
+  src/rasterize.cpp
 )
 target_include_directories(drone_core PUBLIC include)
 target_link_libraries(drone_core PUBLIC Eigen3::Eigen)
@@ -33,6 +34,10 @@ target_compile_options(plan_path PRIVATE -Wall -Wextra -Wpedantic)
 add_executable(plan_rrt apps/plan_rrt.cpp)
 target_link_libraries(plan_rrt PRIVATE drone_core)
 target_compile_options(plan_rrt PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(compare_planners apps/compare_planners.cpp)
+target_link_libraries(compare_planners PRIVATE drone_core)
+target_compile_options(compare_planners PRIVATE -Wall -Wextra -Wpedantic)
 
 # ---- tests ----
 option(DRONE_BUILD_TESTS "Build unit tests" ON)
@@ -54,6 +59,7 @@ if(DRONE_BUILD_TESTS)
     tests/test_world2d.cpp
     tests/test_collision.cpp
     tests/test_rrt.cpp
+    tests/test_rasterize.cpp
   )
   target_link_libraries(drone_tests PRIVATE drone_core GTest::gtest_main)
   target_compile_definitions(drone_tests PRIVATE
