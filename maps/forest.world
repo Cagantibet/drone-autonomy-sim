@@ -1,0 +1,16 @@
+# Open field with scattered round obstacles (trees).
+bounds 20 12
+radius 0.3
+start 1 1
+goal 19 11
+
+circle 4 3 1.2
+circle 3.5 8 1.0
+circle 7 6 1.5
+circle 10 2.5 1.0
+circle 10.5 9 1.3
+circle 13 5.5 1.4
+circle 16 2.5 1.0
+circle 16.5 8.5 1.2
+circle 18.5 5 0.6
+rect 8 10.8 9 12

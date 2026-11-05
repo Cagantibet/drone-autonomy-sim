@@ -1,0 +1,16 @@
+# Three rooms joined by narrow doors (1.2 m wide, drone is 0.6 m across).
+# Forces an S-shaped route, which is hard for uniform-sampling RRT.
+bounds 20 12
+radius 0.3
+start 2 2
+goal 18 10
+
+# wall 1, door near the top
+rect 6 0 6.5 9.5
+rect 6 10.7 6.5 12
+# wall 2, door near the bottom
+rect 13 2.5 13.5 12
+rect 13 0 13.5 1.3
+# furniture
+circle 9.5 4 1.2
+rect 15.5 5 18 6
