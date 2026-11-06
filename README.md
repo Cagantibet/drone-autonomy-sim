@@ -1,13 +1,13 @@
 # Drone Autonomy Simulator
 
-![CI](https://github.com/Cagantibet/drone-autonomy-sim/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/Cagantibet/drone-autonomy-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Cagantibet/drone-autonomy-sim/actions/workflows/ci.yml)
 
 A 2D drone autonomy simulator built from scratch in **C++17**, with Python visualization.
 The drone plans routes through grid and continuous obstacle maps with A* and RRT,
 with point-mass dynamics and exact collision checking. Next up are path following
 with a PID controller and reactive obstacle avoidance.
 
-The focus is clean, tested, interview-grade implementations of core robotics
+The focus is clean, tested implementations of core robotics
 algorithms rather than wrapping existing libraries.
 
 ## Results
